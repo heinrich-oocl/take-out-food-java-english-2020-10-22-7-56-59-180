@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /*
@@ -13,8 +15,50 @@ public class App {
     }
 
     public String bestCharge(List<String> inputs) {
-        //TODO: write code here
+        String output = "";
+        output +=("============= Order details =============\n");
+        ArrayList<Item> orders = new ArrayList<>();
+        HashMap<String, Integer> orderCount = new HashMap<String, Integer>();
+        double orderTotal = 0;
+        for (String input : inputs){
+            String[] value = input.split(" x ");
+            String id = value[0];
+            Integer quantity = Integer.valueOf(value[1]);
+            Item i = itemRepository.findAll().stream().filter(item -> item.getId().equals(id)).findAny().get();
+            output +=(i.getName() + " x " + quantity + " = " + String.format("%.0f", i.getPrice()*quantity) + " yuan\n");
+            orders.add(i);
+            orderCount.put(i.getId(), quantity);
+            orderTotal += i.getPrice()*quantity;
+        }
 
-        return null;
+        // find if half deduction > 6
+        double deduction = 0;
+        for (Item order : orders){
+            boolean hasDiscount = salesPromotionRepository
+                    .findAll()
+                    .stream()
+                    .anyMatch(salesPromotion -> salesPromotion.getRelatedItems().contains(order.getId()));
+            if (hasDiscount) {
+                deduction += order.getPrice() * orderCount.get(order.getId())*0.5;
+            }
+        }
+
+
+        if (deduction > 6){
+            output +=("-----------------------------------\n");
+            output +=("Promotion used:\n");
+            output +=("Half price for certain dishes (Braised chicken，Cold noodles)，saving " + String.format("%.0f", deduction) + " yuan\n");
+        } else if (orderTotal>= 30) {
+            output +=("-----------------------------------\n");
+            output +=("Promotion used:\n");
+            output +=("满30减6 yuan，saving 6 yuan\n");
+            deduction = 6;
+        }
+        output +=("-----------------------------------\n");
+        output +=("Total：" + String.format("%.0f", orderTotal-deduction) + " yuan\n");
+        output +=("===================================");
+
+
+        return output;
     }
 }
