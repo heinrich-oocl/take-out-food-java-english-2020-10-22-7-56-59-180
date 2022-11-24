@@ -44,7 +44,7 @@ public class App {
         }
 
 
-        if (deduction > 6){
+        if (deduction > 6 || (orderTotal< 30 && deduction>0)){
             output +=("-----------------------------------\n");
             output +=("Promotion used:\n");
             output +=("Half price for certain dishes (Braised chicken，Cold noodles)，saving " + String.format("%.0f", deduction) + " yuan\n");
